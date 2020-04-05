@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+Auth::routes();
+
 Route::get('/', 'ClaimController@index');
 
 $claimsMethods = ['index', 'create', 'store', 'show'];
