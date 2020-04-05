@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'ClaimController@index');
+
+$claimsMethods = ['index', 'create', 'store', 'show'];
+Route::resource('claims', 'ClaimController')->only($claimsMethods);
