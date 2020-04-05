@@ -3,18 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\Claim;
+use App\Repositories\ClaimRepository;
 use Illuminate\Http\Request;
 
 class ClaimController extends Controller
 {
     /**
+     * @var ClaimRepository
+     */
+    private $claimRepository;
+
+    public function __construct(ClaimRepository $claimRepository)
+    {
+        $this->claimRepository = $claimRepository;
+    }
+
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        dd(__METHOD__);
+        $params = $request->input();
+        $paginator = $this->claimRepository->getAllWithPaginate($params);
+        return view('claims.index', compact('paginator'));
     }
 
     /**

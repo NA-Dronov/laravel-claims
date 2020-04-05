@@ -39,10 +39,14 @@ class CreateClaimsTable extends Migration
          * 1. V - determines if claim was viewed by specific manager
          * 2. R - shows if claim has new responses for client\manager. 
          */
-        Schema::create('claim_user', function (Blueprint $table) {
+        Schema::create('claim_user_relations', function (Blueprint $table) {
+            $table->id('relation_id');
+
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('claim_id');
             $table->char('relation_type', 1)->default('V');
+            $table->foreign('user_id')->references('user_id')->on('users');
+            $table->foreign('claim_id')->references('claim_id')->on('claims');
         });
     }
 
@@ -53,6 +57,7 @@ class CreateClaimsTable extends Migration
      */
     public function down()
     {
+        Schema::dropIfExists('claim_user_relations');
         Schema::dropIfExists('claims');
     }
 }
