@@ -25,9 +25,19 @@ class ClaimController extends Controller
      */
     public function index(Request $request)
     {
-        $params = $request->input();
-        $paginator = $this->claimRepository->getAllWithPaginate($params);
-        return view('claims.index', compact('paginator'));
+        $search = $request->only(['status', 'viewed', 'has_answer']);
+        $search = array_filter($search, function ($filter) {
+            return isset($filter) && $filter != "";
+        });
+
+        $paginator = $this->claimRepository->getAllWithPaginate($search);
+        if (!empty($search)) {
+            $paginator->appends($search);
+        }
+
+        $claimsStatuses = $this->claimRepository->getStatusesForCombobox();
+
+        return view('claims.index', compact('paginator', 'claimsStatuses', 'search'));
     }
 
     /**

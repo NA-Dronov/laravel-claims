@@ -113,4 +113,19 @@ class ClaimRepository extends CoreRepository
 
         return $result;
     }
+
+    /**
+     * 
+     * Get statuses list for output in dropdown list
+     * 
+     * @return Collection
+     */
+    public function getStatusesForCombobox()
+    {
+        return collect([
+            'O' => 'Открыта',
+            'P' => 'В обработке',
+            'C' => 'Закрыта',
+        ]);
+    }
 }
