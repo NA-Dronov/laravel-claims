@@ -18,20 +18,15 @@ class CreateClaimsTable extends Migration
 
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('manager_id')->default(0);
+            $table->char('status', 1);
 
             $table->string('subject', 256);
             $table->text('body');
-            /**
-             * Three statusese by default:
-             * 1. O - open. Claim created but not assigned
-             * 2. P - processing. Claim assigned to manager
-             * 3. C - closed. Claim closed by manager or user
-             */
-            $table->char('status', 1)->default('O');
+
             $table->timestamps();
 
             $table->foreign('user_id')->references('user_id')->on('users');
-            $table->index('status');
+            $table->foreign('status')->references('code')->on('claim_statuses');
         });
 
         /**

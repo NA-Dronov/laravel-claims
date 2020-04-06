@@ -32,7 +32,7 @@
                             <td>
                                 <a href="{{ route('claims.show', $claim->claim_id) }}">{{ $claim->subject }}</a>
                             </td>
-                            <td>{{ $claim->status }}</td>
+                            <td>{{ $claim->claim_status->status }}</td>
                             <td class="d-none d-sm-table-cell">{{ $claim->user->name }}</td>
                             <td class="d-none d-md-table-cell">Менеджер Василий</td>
                             <td>{{ $claim->created_at ? \Carbon\Carbon::parse($claim->created_at)->format('d M H:i') : '' }}</td>

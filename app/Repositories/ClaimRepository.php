@@ -82,7 +82,7 @@ class ClaimRepository extends CoreRepository
                     ->where('was_viewed_relations.relation_type', '=', 'R');
             })
             ->selectRaw(implode(',', $columns))
-            ->with(['user:user_id,name']);
+            ->with(['user:user_id,name', 'claim_status:code,status']);
 
         if (!empty($params['status'])) {
             $builder->where('status', '=', $params['status']);

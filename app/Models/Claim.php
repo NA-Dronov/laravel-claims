@@ -28,4 +28,15 @@ class Claim extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    /**
+     * 
+     * Claim status
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function claim_status()
+    {
+        return $this->belongsTo(ClaimStatus::class, 'status', 'code');
+    }
 }
