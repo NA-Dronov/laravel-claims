@@ -69,6 +69,6 @@ class ClaimController extends Controller
      */
     public function show(Claim $claim)
     {
-        dd(__METHOD__, $claim);
+        return view('claims.show', ['item' => $claim]);
     }
 }
