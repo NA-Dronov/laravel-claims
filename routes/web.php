@@ -19,3 +19,5 @@ Route::get('/', 'ClaimController@index');
 
 $claimsMethods = ['index', 'create', 'store', 'show'];
 Route::resource('claims', 'ClaimController')->only($claimsMethods);
+
+Route::get('/files/{id}', 'FileController@download')->name('files.download');
