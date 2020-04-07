@@ -3,10 +3,14 @@
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-8">
             @if($paginator->total() > $paginator->count())
-            {{ $paginator->links() }}
+            <div class="float-left">
+                {{ $paginator->links() }}
+            </div>
             @endif
+
+            <a href="{{ route('claims.create') }}" class="btn btn-primary float-right">Написать заявление</a>
         </div>
     </div>
     <div class="row">

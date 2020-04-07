@@ -8,6 +8,14 @@ class Claim extends Model
 {
     protected $primaryKey = 'claim_id';
 
+    protected $fillable = [
+        'subject',
+        'body',
+        'user_id',
+        'manager_id',
+        'status'
+    ];
+
     /**
      * Claim relations
      * 

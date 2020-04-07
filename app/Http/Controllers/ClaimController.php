@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ClaimCreateRequest;
 use App\Models\Claim;
+use App\Models\ClaimStatus;
 use App\Repositories\ClaimRepository;
 use Illuminate\Http\Request;
 
@@ -47,7 +49,9 @@ class ClaimController extends Controller
      */
     public function create()
     {
-        dd(__METHOD__);
+        $item = Claim::make();
+
+        return view('claims.create', compact('item'));
     }
 
     /**
@@ -56,9 +60,23 @@ class ClaimController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ClaimCreateRequest $request)
     {
-        dd(__METHOD__, $request);
+        $data = $request->input();
+        // TODO: remove after auth integration
+        $data['user_id'] = 1;
+        $data['status'] = ClaimStatus::OPEN;
+
+        // Create object and add to database
+        $item = Claim::create($data);
+
+        if ($item) {
+            return redirect()->route('claims.show', [$item->claim_id])
+                ->with(['success']);
+        } else {
+            return back()->withErrors(['msg' => 'Ошибка сохранения'])
+                ->withInput();
+        }
     }
 
     /**
