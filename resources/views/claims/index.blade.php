@@ -43,7 +43,7 @@
                             <td>{{ $claim->claim_status->status }}</td>
                             <td class="d-none d-sm-table-cell">{{ $claim->user->name }}</td>
                             <td class="d-none d-md-table-cell">Менеджер Василий</td>
-                            <td>{{ $claim->created_at ? \Carbon\Carbon::parse($claim->created_at)->format('d M H:i') : '' }}</td>
+                            <td>@isset($claim->created_at) <span class="table-date">{{ \Carbon\Carbon::parse($claim->created_at)->format('d M Y')}}</span> <span class="table-time d-none d-lg-inline">{{ \Carbon\Carbon::parse($claim->created_at)->format('H:i')}}</span> @endisset</td>
                         </tr>
                     @endforeach
                 </tbody>

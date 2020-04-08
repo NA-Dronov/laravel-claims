@@ -1,6 +1,7 @@
 .table-link {
     display: inline-block;
     max-width: 200px;
+    min-width: 22px;
 }
 
 .search-block {
