@@ -35,12 +35,11 @@ class ClaimController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->only(['status', 'viewed', 'has_answer']);
-        $search = array_filter($search, function ($filter) {
-            return isset($filter) && $filter != "";
-        });
+        $data = $request->input();
+        $search = Claim::parseFilters($data);
+        $sorting = Claim::parseSorting($data);
 
-        $paginator = $this->claimRepository->getAllWithPaginate($search);
+        $paginator = $this->claimRepository->getAllWithPaginate(array_merge($search, $sorting));
         if (!empty($search)) {
             $paginator->appends($search);
         }

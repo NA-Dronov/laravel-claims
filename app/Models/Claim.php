@@ -16,6 +16,21 @@ class Claim extends Model
         'status'
     ];
 
+    protected static $filters = [
+        'status',
+        'viewed',
+        'has_answer'
+    ];
+
+    protected static $sortings = [
+        'claim_id',
+        'subject',
+        'status',
+        'user',
+        'manager',
+        'created_at'
+    ];
+
     /**
      * Claim relations
      * 
@@ -46,5 +61,41 @@ class Claim extends Model
     public function claim_status()
     {
         return $this->belongsTo(ClaimStatus::class, 'status', 'code');
+    }
+
+    /**
+     * 
+     * Parse claim filters
+     * 
+     * @return array
+     */
+    public static function parseFilters(array $data)
+    {
+        return array_filter($data, function ($value, $key) {
+            return in_array($key, static::$filters) && isset($value);
+        }, ARRAY_FILTER_USE_BOTH);
+    }
+
+    /**
+     * 
+     * Parse claim sorting
+     * 
+     * @return array
+     */
+    public static function parseSorting(array $data)
+    {
+        $default_sorting = [
+            'sort_by' => 'created_at',
+            'sort_order' => 'desc',
+        ];
+
+        $data = array_merge($default_sorting, $data);
+
+        $sorting = [
+            'sort_by' => in_array($data['sort_by'], static::$sortings) ? $data['sort_by'] : $default_sorting['sort_by'],
+            'sort_order' => in_array($data['sort_order'], ['asc', 'desc']) ? $data['sort_order'] : $default_sorting['sort_order'],
+        ];
+
+        return $sorting;
     }
 }
