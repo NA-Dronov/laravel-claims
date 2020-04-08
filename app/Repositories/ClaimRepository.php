@@ -44,10 +44,12 @@ class ClaimRepository extends CoreRepository
      * 
      * @param int|null $perPage
      * 
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|null
+     * @return (\Illuminate\Contracts\Pagination\LengthAwarePaginator&array&array)[]
      */
     public function getAllWithPaginate($params)
     {
+        $search = Model::parseFilters($params);
+        $sorting = Model::parseSorting($params);
         // TODO: user role based condition
         // $user = Auth::user();
         // if (!isset($user)) {
@@ -85,21 +87,26 @@ class ClaimRepository extends CoreRepository
             ->selectRaw(implode(',', $columns))
             ->with(['user:user_id,name', 'claim_status:code,status']);
 
-        if (!empty($params['status'])) {
-            $builder->where('status', '=', $params['status']);
+        if (!empty($search['status'])) {
+            $builder->where('status', '=', $search['status']);
         }
 
-        if (isset($params['viewed'])) {
-            $wasViewedCondition = 'COUNT(was_viewed_relations.claim_id) ' . ($params['viewed'] == true ? '>' : '=') . '0';
+        if (isset($search['viewed'])) {
+            $wasViewedCondition = 'COUNT(was_viewed_relations.claim_id) ' . ($search['viewed'] == true ? '>' : '=') . '0';
             $builder->havingRaw($wasViewedCondition);
         }
 
-        $builder->orderBy('created_at', 'DESC')
-            ->groupBy('claims.claim_id');
+        $builder->orderBy($sorting['sort_by'], $sorting['sort_order'])->groupBy('claims.claim_id');
 
+        $paginator = $builder->paginate(25);
 
-        $result = $builder->paginate(25);
+        if (!empty($search)) {
+            $paginator->appends($search);
+        }
 
+        if (!empty($sorting)) {
+            $paginator->appends($sorting);
+        }
 
         // $result = $this
         //     ->startCondition()
@@ -112,7 +119,7 @@ class ClaimRepository extends CoreRepository
         //     ])
         //     ->paginate(25);
 
-        return $result;
+        return compact('paginator', 'search', 'sorting');
     }
 
     /**

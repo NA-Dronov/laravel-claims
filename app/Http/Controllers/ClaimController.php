@@ -36,17 +36,12 @@ class ClaimController extends Controller
     public function index(Request $request)
     {
         $data = $request->input();
-        $search = Claim::parseFilters($data);
-        $sorting = Claim::parseSorting($data);
 
-        $paginator = $this->claimRepository->getAllWithPaginate(array_merge($search, $sorting));
-        if (!empty($search)) {
-            $paginator->appends($search);
-        }
+        extract($this->claimRepository->getAllWithPaginate($data));
 
         $claimsStatuses = $this->claimRepository->getStatusesForCombobox();
 
-        return view('claims.index', compact('paginator', 'claimsStatuses', 'search'));
+        return view('claims.index', compact('paginator', 'claimsStatuses', 'search', 'sorting'));
     }
 
     /**

@@ -22,6 +22,11 @@ class Claim extends Model
         'has_answer'
     ];
 
+    protected static $default_sorting = [
+        'sort_by' => 'created_at',
+        'sort_order' => 'desc'
+    ];
+
     protected static $sortings = [
         'claim_id',
         'subject',
@@ -84,16 +89,11 @@ class Claim extends Model
      */
     public static function parseSorting(array $data)
     {
-        $default_sorting = [
-            'sort_by' => 'created_at',
-            'sort_order' => 'desc',
-        ];
-
-        $data = array_merge($default_sorting, $data);
+        $data = array_merge(static::$default_sorting, $data);
 
         $sorting = [
-            'sort_by' => in_array($data['sort_by'], static::$sortings) ? $data['sort_by'] : $default_sorting['sort_by'],
-            'sort_order' => in_array($data['sort_order'], ['asc', 'desc']) ? $data['sort_order'] : $default_sorting['sort_order'],
+            'sort_by' => in_array($data['sort_by'], static::$sortings) ? $data['sort_by'] : static::$default_sorting['sort_by'],
+            'sort_order' => in_array($data['sort_order'], ['asc', 'desc']) ? $data['sort_order'] : static::$default_sorting['sort_order'],
         ];
 
         return $sorting;
