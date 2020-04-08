@@ -1,0 +1,33 @@
+.table-link {
+    display: inline-block;
+    max-width: 200px;
+}
+
+.search-block {
+    order: 0;
+}
+
+.index-block {
+    order: 1;
+}
+
+@media (min-width: 768px) {
+    .search-block,
+    .index-block {
+        order: initial;
+    }
+}
+
+@media (max-width: 992px) {
+    .table-link-text {
+        display: inline-block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 42px;
+        vertical-align: middle;
+    }
+
+    .fas {
+        vertical-align: middle;
+    }
+}

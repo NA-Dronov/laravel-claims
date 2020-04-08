@@ -58,11 +58,11 @@ class ClaimRepository extends CoreRepository
 
         $columns = [
             'claims.claim_id',
-            'subject',
+            'claims.subject',
             'claims.user_id',
-            'manager_id',
-            'status',
-            'created_at',
+            'claims.manager_id',
+            'claims.status',
+            'claims.created_at',
             'COUNT(was_viewed_relations.claim_id) AS was_viewed',
             'COUNT(has_new_responses_relations.claim_id) AS has_new_responses',
         ];
@@ -83,20 +83,36 @@ class ClaimRepository extends CoreRepository
             ->leftjoin('claim_user_relations as has_new_responses_relations', function ($join) {
                 $join->on('claims.claim_id', '=', 'has_new_responses_relations.claim_id')
                     ->where('was_viewed_relations.relation_type', '=', 'R');
-            })
-            ->selectRaw(implode(',', $columns))
-            ->with(['user:user_id,name', 'claim_status:code,status']);
+            });
 
+        #region SEARCH
         if (!empty($search['status'])) {
-            $builder->where('status', '=', $search['status']);
+            $builder->where('claims.status', '=', $search['status']);
         }
 
         if (isset($search['viewed'])) {
             $wasViewedCondition = 'COUNT(was_viewed_relations.claim_id) ' . ($search['viewed'] == true ? '>' : '=') . '0';
             $builder->havingRaw($wasViewedCondition);
         }
+        #endregion
 
-        $builder->orderBy($sorting['sort_by'], $sorting['sort_order'])->groupBy('claims.claim_id');
+        #region SORT
+        if ($sorting['sort_by'] == 'status') {
+            $builder->leftjoin('claim_statuses as cs', function ($join) {
+                $join->on('claims.status', '=', 'cs.code');
+            });
+            $builder->orderBy('cs.status', $sorting['sort_order']);
+        } elseif ($sorting['sort_by'] == 'user') {
+            $builder->leftjoin('users as u', function ($join) {
+                $join->on('claims.user_id', '=', 'u.user_id');
+            });
+            $builder->orderBy('u.name', $sorting['sort_order']);
+        } else {
+            $builder->orderBy($sorting['sort_by'], $sorting['sort_order']);
+        }
+        #endregion
+
+        $builder->selectRaw(implode(',', $columns))->with(['user:user_id,name', 'claim_status:code,status'])->groupBy('claims.claim_id');
 
         $paginator = $builder->paginate(25);
 

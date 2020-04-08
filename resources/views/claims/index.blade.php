@@ -1,9 +1,13 @@
 @extends('layouts.app')
 
+@push('styles')
+<link href="{{ asset('css/claims.index.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-10">
             @if($paginator->total() > $paginator->count())
             <div class="float-left">
                 {{ $paginator->links() }}
@@ -14,16 +18,16 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-8">
+        <div class="col-md-10 index-block">
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Заявка</th>
-                        <th>Статус</th>
-                        <th class="d-none d-sm-table-cell">Отправитель</th>
-                        <th class="d-none d-md-table-cell">Ответственный</th>
-                        <th>Дата создания</th>
+                        @include('claims.table.header', ['field_name' => 'claim_id', 'field_desc' => '#', 'sorting' => $sorting])
+                        @include('claims.table.header', ['field_name' => 'subject', 'field_desc' => 'Заявка', 'sorting' => $sorting])
+                        @include('claims.table.header', ['field_name' => 'status', 'field_desc' => 'Статус', 'sorting' => $sorting])
+                        @include('claims.table.header', ['field_name' => 'user', 'field_desc' => 'Отправитель', 'sorting' => $sorting, 'classes' => 'd-none d-sm-table-cell'])
+                        @include('claims.table.header', ['field_name' => 'manager', 'field_desc' => 'Ответственный', 'sorting' => $sorting, 'classes' => 'd-none d-md-table-cell'])
+                        @include('claims.table.header', ['field_name' => 'created_at', 'field_desc' => 'Дата', 'sorting' => $sorting])
                     </tr>
                 </thead>
                 <tbody>
@@ -34,7 +38,7 @@
                         <tr>
                             <td>{{ $claim->claim_id }}</td>
                             <td>
-                                <a href="{{ route('claims.show', $claim->claim_id) }}">{{ $claim->subject }}</a>
+                                <a href="{{ route('claims.show', $claim->claim_id) }}" class="table-link">{{ $claim->subject }}</a>
                             </td>
                             <td>{{ $claim->claim_status->status }}</td>
                             <td class="d-none d-sm-table-cell">{{ $claim->user->name }}</td>
@@ -46,8 +50,12 @@
                 <tfoot></tfoot>
             </table>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-2 search-block">
         <form action="{{route('claims.index')}}" method="get">
+            @if (isset($sorting['sort_by']) && isset($sorting['sort_order']))
+            <input type="hidden" name="sort_by" value="{{$sorting['sort_by']}}">
+            <input type="hidden" name="sort_order" value="{{$sorting['sort_order']}}">
+            @endif
             <div class="form-group">
                 <label for="status">Статус</label>
                 <select name="status" 
