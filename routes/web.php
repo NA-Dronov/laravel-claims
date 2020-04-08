@@ -15,9 +15,13 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
-Route::get('/', 'ClaimController@index');
+Route::group(['middleware' => 'auth'], function () {
+    Route::get('/', 'ClaimController@index')->middleware('auth');
 
-$claimsMethods = ['index', 'create', 'store', 'show'];
-Route::resource('claims', 'ClaimController')->only($claimsMethods);
+    $claimsMethods = ['index', 'create', 'store', 'show'];
+    Route::resource('claims', 'ClaimController')->only($claimsMethods);
+    Route::post('/claims/{claim}/assign/{user}', 'ClaimController@assign')->name('claims.assign');
+    Route::post('/claims/{claim}/close', 'ClaimController@close')->name('claims.close');
 
-Route::get('/files/{id}', 'FileController@download')->name('files.download');
+    Route::get('/files/{id}', 'FileController@download')->name('files.download');
+});

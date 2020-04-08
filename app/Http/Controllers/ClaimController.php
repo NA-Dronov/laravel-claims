@@ -6,6 +6,7 @@ use App\Http\Requests\ClaimCreateRequest;
 use App\Models\Claim;
 use App\Models\ClaimStatus;
 use App\Models\File;
+use App\Models\User;
 use App\Repositories\ClaimRepository;
 use App\Repositories\FileGateway;
 use Illuminate\Http\Request;
@@ -24,6 +25,9 @@ class ClaimController extends Controller
 
     public function __construct(ClaimRepository $claimRepository, FileGateway $fileGateway)
     {
+        $this->middleware('can:create_claim')->only(['create', 'store']);
+        $this->middleware('can:assign_claim')->only(['assign']);
+
         $this->claimRepository = $claimRepository;
         $this->fileGateway = $fileGateway;
     }
@@ -41,7 +45,9 @@ class ClaimController extends Controller
 
         $claimsStatuses = $this->claimRepository->getStatusesForCombobox();
 
-        return view('claims.index', compact('paginator', 'claimsStatuses', 'search', 'sorting'));
+        $managerMode = auth()->user()->hasRole('manager');
+
+        return view('claims.index', compact('paginator', 'claimsStatuses', 'search', 'sorting', 'managerMode'));
     }
 
     /**
@@ -65,8 +71,8 @@ class ClaimController extends Controller
     public function store(ClaimCreateRequest $request)
     {
         $data = $request->input();
-        // TODO: remove after auth integration
-        $data['user_id'] = 1;
+
+        $data['user_id'] = auth()->user()->user_id;
         $data['status'] = ClaimStatus::OPEN;
 
         // Create object and add to database
@@ -94,9 +100,42 @@ class ClaimController extends Controller
      * @param  \App\Claim  $claim
      * @return \Illuminate\Http\Response
      */
-    public function show(Claim $claim)
+    public function show($id)
     {
-        $files = $this->fileGateway->getAll($claim->claim_id, File::CLAIM)->toArray();
-        return view('claims.show', ['item' => $claim, 'item_files' => $files]);
+        $item = $this->claimRepository->getById($id);
+
+        if (empty($item)) {
+            abort(404);
+        }
+
+        if (auth()->user()->user_id != $item->user_id && !auth()->user()->hasRole("manager")) {
+            return redirect()->route('claims.index')
+                ->withErrors(['msg' => 'У вас недостаточно прав']);
+        }
+
+        $item_files = $this->fileGateway->getAll($item->claim_id, File::CLAIM)->toArray();
+        return view('claims.show', compact('item', 'item_files'));
+    }
+
+    public function assign(Claim $claim, User $user)
+    {
+        $claim->update(['manager_id' => $user->user_id]);
+
+        return redirect()->route('claims.show', [$claim->claim_id])
+            ->with(['success']);
+    }
+
+    public function close(Claim $claim)
+    {
+        $isCurrentUser = auth()->user()->user_id == $claim->user_id;
+        $isManager = auth()->user()->hasRole("manager");
+        if (!$isCurrentUser && !$isManager) {
+            return back()->withErrors(['msg' => 'У вас недостаточно прав']);
+        }
+
+        $claim->update(['status' => ClaimStatus::CLOSED]);
+
+        return redirect()->route('claims.show', [$claim->claim_id])
+            ->with(['success']);
     }
 }

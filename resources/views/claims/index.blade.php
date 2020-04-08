@@ -7,17 +7,19 @@
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-10">
+        <div class="col-md-10 mb-2">
             @if($paginator->total() > $paginator->count())
             <div class="float-left">
                 {{ $paginator->links() }}
             </div>
             @endif
-
+            @can('create_claim')
             <a href="{{ route('claims.create') }}" class="btn btn-primary float-right">Написать заявление</a>
+            @endcan
         </div>
     </div>
     <div class="row">
+        @if ($paginator->isNotEmpty())
         <div class="col-md-10 index-block">
             <table class="table table-hover">
                 <thead>
@@ -25,7 +27,9 @@
                         @include('claims.table.header', ['field_name' => 'claim_id', 'field_desc' => '#', 'sorting' => $sorting])
                         @include('claims.table.header', ['field_name' => 'subject', 'field_desc' => 'Заявка', 'sorting' => $sorting])
                         @include('claims.table.header', ['field_name' => 'status', 'field_desc' => 'Статус', 'sorting' => $sorting])
+                        @if ($managerMode)
                         @include('claims.table.header', ['field_name' => 'user', 'field_desc' => 'Отправитель', 'sorting' => $sorting, 'classes' => 'd-none d-sm-table-cell'])
+                        @endif
                         @include('claims.table.header', ['field_name' => 'manager', 'field_desc' => 'Ответственный', 'sorting' => $sorting, 'classes' => 'd-none d-md-table-cell'])
                         @include('claims.table.header', ['field_name' => 'created_at', 'field_desc' => 'Дата', 'sorting' => $sorting])
                     </tr>
@@ -41,8 +45,10 @@
                                 <a href="{{ route('claims.show', $claim->claim_id) }}" class="table-link">{{ $claim->subject }}</a>
                             </td>
                             <td>{{ $claim->claim_status->status }}</td>
+                            @if ($managerMode)
                             <td class="d-none d-sm-table-cell">{{ $claim->user->name }}</td>
-                            <td class="d-none d-md-table-cell">Менеджер Василий</td>
+                            @endif
+                            <td class="d-none d-md-table-cell">{{ optional($claim->manager)->name ?? "--" }}</td>
                             <td>@isset($claim->created_at) <span class="table-date">{{ \Carbon\Carbon::parse($claim->created_at)->format('d M Y')}}</span> <span class="table-time d-none d-lg-inline">{{ \Carbon\Carbon::parse($claim->created_at)->format('H:i')}}</span> @endisset</td>
                         </tr>
                     @endforeach
@@ -95,6 +101,13 @@
             <button class="btn btn-primary btn-block" type="submit">Поиск</button>
         </form>
         </div>
+        @else
+        <div class="card col-md-10 text-center">
+            <div class="card-body">
+                <p class="card-text display-4">Заявки отсутствуют</p>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 @endsection

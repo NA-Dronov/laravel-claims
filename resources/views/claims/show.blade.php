@@ -32,20 +32,20 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
-                    @if (empty($item->manager_id))
-                    <form action="" method="post" class="form-group row">
+                    @can('assign_claim')
+                    @if (Auth::user()->user_id != $item->manager_id)
+                    <form action="{{route('claims.assign', [$item->claim_id, Auth::user()->user_id])}}" method="post" class="form-group row">
                         @csrf
-                        <input type="hidden" name="manager_id" value="1"/>
                         <button class="btn btn-primary btn-block" type="submit">Назначить мне</button>
                     </form>
-                    @else
+                    @endif
+                    @endcan
                     <div class="form-group row">
                         <label for="manager" class="col-sm-5 col-form-label">Ответственный:</label>
                         <div class="col-sm-7">
-                          <input type="text" readonly class="form-control-plaintext" id="manager" value="----">
+                          <input type="text" readonly class="form-control-plaintext" id="manager" value="{{ optional($item->manager)->name ?? "--" }}">
                         </div>
                     </div>
-                    @endif
                     <div class="form-group row">
                         <label for="created_at" class="col-sm-5 col-form-label">Дата создания:</label>
                         <div class="col-sm-7">
@@ -58,6 +58,12 @@
                           <input type="text" readonly class="form-control-plaintext" id="user" value="{{ $item->user->name }}">
                         </div>
                     </div>
+                    @if ($item->status != \App\Models\ClaimStatus::CLOSED)
+                    <form action="{{route('claims.close', [$item->claim_id])}}" method="post" class="form-group row">
+                      @csrf
+                      <button class="btn btn-danger btn-block" type="submit">Закрыть заявление</button>
+                    </form>
+                    @endif
                 </div>
             </div>
         </div>

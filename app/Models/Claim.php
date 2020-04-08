@@ -59,6 +59,17 @@ class Claim extends Model
 
     /**
      * 
+     * Claim manager
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id', 'user_id');
+    }
+
+    /**
+     * 
      * Claim status
      * 
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

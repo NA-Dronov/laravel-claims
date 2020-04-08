@@ -27,16 +27,16 @@ class ClaimRepository extends CoreRepository
 
     /**
      * 
-     * Get model for editing in admin panel
+     * Get model for showing
      * 
      * @param int $id
      * 
      * @return Model
      * 
      */
-    public function getEdit($id)
+    public function getById($id)
     {
-        dd(__METHOD__, $id);
+        return $this->startCondition()->with(['user:user_id,name', 'manager:user_id,name'])->find($id);
     }
 
     /**
@@ -63,6 +63,7 @@ class ClaimRepository extends CoreRepository
             'claims.manager_id',
             'claims.status',
             'claims.created_at',
+            'm.name as manager_name',
             'COUNT(was_viewed_relations.claim_id) AS was_viewed',
             'COUNT(has_new_responses_relations.claim_id) AS has_new_responses',
         ];
@@ -76,6 +77,9 @@ class ClaimRepository extends CoreRepository
          */
         $builder = $this
             ->startCondition()
+            ->leftjoin('users as m', function ($join) {
+                $join->on('claims.manager_id', '=', 'm.user_id');
+            })
             ->leftjoin('claim_user_relations as was_viewed_relations', function ($join) {
                 $join->on('claims.claim_id', '=', 'was_viewed_relations.claim_id')
                     ->where('was_viewed_relations.relation_type', '=', 'V');
@@ -84,6 +88,15 @@ class ClaimRepository extends CoreRepository
                 $join->on('claims.claim_id', '=', 'has_new_responses_relations.claim_id')
                     ->where('was_viewed_relations.relation_type', '=', 'R');
             });
+
+        /**
+         * @var \App\Models\User $user
+         */
+        $user = auth()->user();
+
+        if (!$user->hasRole('manager')) {
+            $builder->where('claims.user_id', $user->user_id);
+        }
 
         #region SEARCH
         if (!empty($search['status'])) {
@@ -107,12 +120,14 @@ class ClaimRepository extends CoreRepository
                 $join->on('claims.user_id', '=', 'u.user_id');
             });
             $builder->orderBy('u.name', $sorting['sort_order']);
+        } elseif ($sorting['sort_by'] == 'manager') {
+            $builder->orderBy('m.name', $sorting['sort_order']);
         } else {
             $builder->orderBy($sorting['sort_by'], $sorting['sort_order']);
         }
         #endregion
 
-        $builder->selectRaw(implode(',', $columns))->with(['user:user_id,name', 'claim_status:code,status'])->groupBy('claims.claim_id');
+        $builder->selectRaw(implode(',', $columns))->with(['user:user_id,name', 'manager:user_id,name', 'claim_status:code,status'])->groupBy('claims.claim_id');
 
         $paginator = $builder->paginate(25);
 
@@ -123,17 +138,6 @@ class ClaimRepository extends CoreRepository
         if (!empty($sorting)) {
             $paginator->appends($sorting);
         }
-
-        // $result = $this
-        //     ->startCondition()
-        //     ->select($columns)
-        //     ->leftjoin('claim_user_relations', 'audioassets.raga_id', '=', 'claim_user_relations.id')
-        //     ->orderBy('created_at', 'DESC')
-        //     ->with([
-        //         'relations:claim_id,relation_type',
-        //         'user:user_id,name'
-        //     ])
-        //     ->paginate(25);
 
         return compact('paginator', 'search', 'sorting');
     }

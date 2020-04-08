@@ -17,4 +17,10 @@ class File extends Model
         'original_name',
         'stored_name'
     ];
+
+
+    public function claim()
+    {
+        return $this->belongsTo(Claim::class);
+    }
 }
