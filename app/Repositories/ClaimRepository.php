@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Claim as Model;
+use App\Models\ClaimStatus;
 use Illuminate\Http\Request;
 use Auth;
 use DB;
@@ -118,14 +119,15 @@ class ClaimRepository extends CoreRepository
      * 
      * Get statuses list for output in dropdown list
      * 
-     * @return Collection
+     * @return array
      */
     public function getStatusesForCombobox()
     {
-        return collect([
-            'O' => 'Открыта',
-            'P' => 'В обработке',
-            'C' => 'Закрыта',
-        ]);
+        $statuses = ClaimStatus::all(['code', 'status'])
+            ->keyBy('code')
+            ->map(function ($item, $key) {
+                return $item['status'];
+            })->toArray();
+        return $statuses;
     }
 }
