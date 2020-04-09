@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Collection;
  * 
  * @package App\Repositories
  */
-class FileGateway extends CoreRepository
+class FileBroker extends CoreRepository
 {
     /**
      * @return string

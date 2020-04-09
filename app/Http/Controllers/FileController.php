@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\FileGateway;
+use App\Repositories\FileBroker;
 use Illuminate\Http\Request;
 
 class FileController extends Controller
 {
     /**
-     * @var FileGateway
+     * @var FileBroker
      */
-    private $fileGateway;
+    private $fileBroker;
 
-    public function __construct(FileGateway $fileGateway)
+    public function __construct(FileBroker $fileBroker)
     {
-        $this->fileGateway = $fileGateway;
+        $this->fileBroker = $fileBroker;
     }
     /**
      * Download the specified file.
@@ -24,7 +24,7 @@ class FileController extends Controller
      */
     public function download($id)
     {
-        $file = $this->fileGateway->get($id);
+        $file = $this->fileBroker->get($id);
 
         if (empty($file)) {
             abort(404);

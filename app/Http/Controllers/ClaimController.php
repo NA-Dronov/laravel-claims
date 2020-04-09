@@ -8,7 +8,7 @@ use App\Models\ClaimStatus;
 use App\Models\File;
 use App\Models\User;
 use App\Repositories\ClaimRepository;
-use App\Repositories\FileGateway;
+use App\Repositories\FileBroker;
 use Illuminate\Http\Request;
 
 class ClaimController extends Controller
@@ -19,17 +19,17 @@ class ClaimController extends Controller
     private $claimRepository;
 
     /**
-     * @var FileGateway
+     * @var FileBroker
      */
-    private $fileGateway;
+    private $fileBroker;
 
-    public function __construct(ClaimRepository $claimRepository, FileGateway $fileGateway)
+    public function __construct(ClaimRepository $claimRepository, FileBroker $fileBroker)
     {
         $this->middleware('can:create_claim')->only(['create', 'store']);
         $this->middleware('can:assign_claim')->only(['assign']);
 
         $this->claimRepository = $claimRepository;
-        $this->fileGateway = $fileGateway;
+        $this->fileBroker = $fileBroker;
     }
 
     /**
@@ -83,7 +83,7 @@ class ClaimController extends Controller
             $files = $request->allFiles();
 
             if (!empty($files['attachments'])) {
-                $this->fileGateway->store($files['attachments'], $item->claim_id, File::CLAIM);
+                $this->fileBroker->store($files['attachments'], $item->claim_id, File::CLAIM);
             }
 
             return redirect()->route('claims.show', [$item->claim_id])
@@ -113,7 +113,7 @@ class ClaimController extends Controller
                 ->withErrors(['msg' => 'У вас недостаточно прав']);
         }
 
-        $item_files = $this->fileGateway->getAll($item->claim_id, File::CLAIM)->toArray();
+        $item_files = $this->fileBroker->getAll($item->claim_id, File::CLAIM)->toArray();
         return view('claims.show', compact('item', 'item_files'));
     }
 

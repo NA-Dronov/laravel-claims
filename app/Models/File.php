@@ -18,9 +18,8 @@ class File extends Model
         'stored_name'
     ];
 
-
     public function claim()
     {
-        return $this->belongsTo(Claim::class);
+        return $this->hasOne(Claim::class);
     }
 }
