@@ -1,30 +1,59 @@
 @extends('layouts.app')
 
+@push('styles')
+<link href="{{ asset('css/claims.show.css') }}" rel="stylesheet">
+@endpush
+
 @section('content')
 <div class="container">
     <div class="row">
         <div class="col-md-8">
             <div class="card">
                 <ul class="nav nav-pills">
-                  <li class="nav-item"><a data-toggle="pill" href="#claim" class="nav-link active">Заявка</a></li>
-                  <li class="nav-item"><a data-toggle="pill" href="#responses" class="nav-link">Ответы</a></li>
+                  <li class="nav-item"><a data-toggle="pill" href="#claim" class="nav-link @if((session()->has('active') && session()->get('active') == 'claim') || !session()->has('active')) active @endif">Заявка</a></li>
+                  <li class="nav-item"><a data-toggle="pill" href="#responses" class="nav-link @if((session()->has('active') && session()->get('active') == 'responses')) active @endif">Ответы</a></li>
                 </ul>
                 <div class="card-body tab-content">
-                  <div id="claim" class="tab-pane active">
+                  <div id="claim" class="tab-pane @if((session()->has('active') && session()->get('active') == 'claim') || !session()->has('active')) active @else fade @endif">
                     <h3>{{$item->subject}}</h3>
                     <p>{{$item->body}}</p>
-                    @if (!empty($item_files))
-                    <h5 class="mt-2">Прикрепленные файлы</h5>
+                    @if ($item->files->isNotEmpty())
                     <ul class="list-unstyled">
-                      @foreach ($item_files as $file)
-                        <li><a href="{{ route('files.download', $file['file_id']) }}">{{$file['original_name']}}</a></li>
+                      @foreach ($item->files as $file)
+                        <li><a href="{{ route('files.download', $file->file_id) }}"><i class="fas fa-file-download"></i>&nbsp;{{$file->original_name}}</a></li>
                       @endforeach
                     </ul>
                     @endif
                   </div>
-                  <div id="responses" class="tab-pane fade">
-                    <h3>Ответы</h3>
-                    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                  <div id="responses" class="tab-pane @if(session()->has('active') && session()->get('active') == 'responses') active @else fade @endif">
+                    @if ($item->claim_status->code != \App\Models\ClaimStatus::CLOSED)
+                    @include('claims.includes.create', ['route' => route('claims.response', [$item->claim_id]), 'item' => $new_reponse])
+                    @endif
+                    <div class="mt-2 card border-0 container-fluid">
+                      <div class="row">
+                        @if ($item->responses->isNotEmpty())
+                        @foreach ($item->responses as $response)                          
+                          <div class="col-md-8 card my-1 @if($response->author->roles->contains('name', 'manager')) response-manager ml-auto @else response-owner mr-auto @endif text-white">
+                            <h5 class="card-title clearfix py-1 px-0 m-0"><span class="float-left">{{$response->subject}}</span><span class="float-right">{{$response->author->name}} {{\Carbon\Carbon::parse($response->created_at)->format('d-m-Y H:i')}}</span></h5>
+                            <div class="card-body py-1 px-0">
+                              <p class="card-text">{{$response->body}}</p>
+                              @if ($response->files->isNotEmpty())
+                              <ul class="list-unstyled">
+                                @foreach ($response->files as $file)
+                                  <li><a class="text-white" href="{{ route('files.download', $file->file_id) }}"><i class="fas fa-file-download"></i>&nbsp;{{$file->original_name}}</a></li>
+                                @endforeach
+                              </ul>
+                              @endif
+                            </div>
+                          </div>
+                        @endforeach
+                        @else
+                        <div class="col-md-12 jumbotron text-center">
+                          <p>Ничего не найдено</p>
+                        </div>
+                        @endif
+                      </div>
+                    </div>
                   </div>
                 </div>
             </div>

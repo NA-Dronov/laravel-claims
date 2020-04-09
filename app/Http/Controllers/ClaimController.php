@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ClaimCreateRequest;
+use App\Http\Requests\ResponseCreateRequest;
 use App\Models\Claim;
 use App\Models\ClaimStatus;
 use App\Models\File;
+use App\Models\Response;
 use App\Models\User;
 use App\Repositories\ClaimRepository;
 use App\Repositories\FileBroker;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ClaimController extends Controller
@@ -25,8 +28,9 @@ class ClaimController extends Controller
 
     public function __construct(ClaimRepository $claimRepository, FileBroker $fileBroker)
     {
-        $this->middleware('can:create_claim')->only(['create', 'store']);
+        $this->middleware(['can:create_claim', 'claim.time'])->only(['create', 'store']);
         $this->middleware('can:assign_claim')->only(['assign']);
+        $this->middleware('claim.check_permission')->only(['response', 'show', 'close']);
 
         $this->claimRepository = $claimRepository;
         $this->fileBroker = $fileBroker;
@@ -95,26 +99,57 @@ class ClaimController extends Controller
     }
 
     /**
+     * Store a newly created response in storage.
+     *
+     * @param  \App\Models\Claim  $request
+     * @param  \Illuminate\Http\ResponseCreateRequest  $request
+     * 
+     * @return \Illuminate\Http\Response
+     */
+    public function response(Claim $claim, ResponseCreateRequest $request)
+    {
+        if ($claim->claim_status->code == ClaimStatus::CLOSED) {
+            return redirect()->route('claims.show', [$claim->claim_id])
+                ->withErrors(['msg' => 'Заявка закрыта']);
+        }
+
+        $data = $request->input();
+
+        $data['user_id'] = auth()->user()->user_id;
+        $data['claim_id'] = $claim->claim_id;
+
+        // Create object and add to database
+        $item = Response::create($data);
+
+        if ($item) {
+
+            $files = $request->allFiles();
+
+            if (!empty($files['attachments'])) {
+                $this->fileBroker->store($files['attachments'], $item->response_id, File::RESPONSE);
+            }
+
+            return redirect()->route('claims.show', [$item->claim_id])
+                ->with(['success' => 'Успех', 'active' => 'responses']);
+        } else {
+            return back()->withErrors(['msg' => 'Ошибка сохранения'])
+                ->withInput();
+        }
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param  \App\Claim  $claim
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Claim $claim)
     {
-        $item = $this->claimRepository->getById($id);
+        $item = $claim;
 
-        if (empty($item)) {
-            abort(404);
-        }
-
-        if (auth()->user()->user_id != $item->user_id && !auth()->user()->hasRole("manager")) {
-            return redirect()->route('claims.index')
-                ->withErrors(['msg' => 'У вас недостаточно прав']);
-        }
-
-        $item_files = $this->fileBroker->getAll($item->claim_id, File::CLAIM)->toArray();
-        return view('claims.show', compact('item', 'item_files'));
+        $new_reponse = Response::make();
+        //$item_files = $this->fileBroker->getAll($item->claim_id, File::CLAIM)->toArray();
+        return view('claims.show', compact('item', 'new_reponse'));
     }
 
     public function assign(Claim $claim, User $user)
@@ -127,12 +162,6 @@ class ClaimController extends Controller
 
     public function close(Claim $claim)
     {
-        $isCurrentUser = auth()->user()->user_id == $claim->user_id;
-        $isManager = auth()->user()->hasRole("manager");
-        if (!$isCurrentUser && !$isManager) {
-            return back()->withErrors(['msg' => 'У вас недостаточно прав']);
-        }
-
         $claim->update(['status' => ClaimStatus::CLOSED]);
 
         return redirect()->route('claims.show', [$claim->claim_id])

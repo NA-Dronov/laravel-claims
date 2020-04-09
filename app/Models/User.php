@@ -53,6 +53,10 @@ class User extends Authenticatable
 
     public function assignRole($role)
     {
+        if (is_string($role)) {
+            $role = Role::whereName($role)->first();
+        }
+
         $this->roles()->syncWithoutDetaching($role);
     }
 

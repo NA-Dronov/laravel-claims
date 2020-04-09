@@ -22,4 +22,12 @@ class File extends Model
     {
         return $this->hasOne(Claim::class);
     }
+
+    /**
+     * Get the owner model.
+     */
+    public function owner()
+    {
+        return $this->morphTo();
+    }
 }

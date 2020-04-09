@@ -36,7 +36,9 @@ class ClaimRepository extends CoreRepository
      */
     public function getById($id)
     {
-        return $this->startCondition()->with(['user:user_id,name', 'manager:user_id,name'])->find($id);
+        return $this->startCondition()->with(['user:user_id,name', 'manager:user_id,name', 'responses' => function ($query) {
+            $query->orderBy('created_at', 'DESC');
+        }, 'responses.author', 'files', 'responses.files', 'responses.author', 'responses.author.roles', 'claim_status'])->find($id);
     }
 
     /**

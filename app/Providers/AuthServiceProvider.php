@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Claim;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -32,5 +33,10 @@ class AuthServiceProvider extends ServiceProvider
                 return true;
             }
         });
+
+        Relation::morphMap([
+            'C' => 'App\Models\Claim',
+            'R' => 'App\Models\Response',
+        ]);
     }
 }

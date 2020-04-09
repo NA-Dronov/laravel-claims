@@ -22,6 +22,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('claims', 'ClaimController')->only($claimsMethods);
     Route::post('/claims/{claim}/assign/{user}', 'ClaimController@assign')->name('claims.assign');
     Route::post('/claims/{claim}/close', 'ClaimController@close')->name('claims.close');
+    Route::post('/claims/{claim}/response', 'ClaimController@response')->name('claims.response');
 
     Route::get('/files/{id}', 'FileController@download')->name('files.download');
 });

@@ -81,6 +81,25 @@ class Claim extends Model
 
     /**
      * 
+     * Claim responses
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function responses()
+    {
+        return $this->hasMany(Response::class, 'claim_id');
+    }
+
+    /**
+     * Get all of the claim's files.
+     */
+    public function files()
+    {
+        return $this->morphMany(File::class, 'object');
+    }
+
+    /**
+     * 
      * Parse claim filters
      * 
      * @return array
