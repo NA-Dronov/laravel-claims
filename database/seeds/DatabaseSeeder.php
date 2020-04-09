@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
         $this->call(ManagerSeeder::class);
 
         if (config('app.debug')) {
-            //$this->call(Dev\Seeder\UsersTableSeeder::class);
-            factory(\App\Models\Claim::class, 100)->create();
+            $this->call(Dev\Seeder\DebugDataSeeder::class);
+            //factory(\App\Models\Claim::class, 100)->create();
         }
     }
 }

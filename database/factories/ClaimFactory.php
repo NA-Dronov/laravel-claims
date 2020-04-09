@@ -22,7 +22,7 @@ $factory->define(Claim::class, function (Faker $faker) {
     $created_at = $faker->dateTimeBetween('-3 month', '-2 days');
 
     return [
-        'user_id' => factory(User::class)->create()->user_id,
+        'user_id' => User::where('email', '!=', env('ADMIN_EMAIL'))->orderByRaw('RAND()')->first()->user_id,
         'manager_id' => $manager_id,
         'subject' => $subject,
         'body' => $body,
