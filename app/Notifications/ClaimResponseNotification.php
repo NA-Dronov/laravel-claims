@@ -48,7 +48,7 @@ class ClaimResponseNotification extends Notification
      */
     public function toMail(User $notifiable)
     {
-        return (new Mailable($this->response))->to($notifiable->email);
+        return (new Mailable($notifiable, $this->response))->to($notifiable->email);
     }
 
     /**

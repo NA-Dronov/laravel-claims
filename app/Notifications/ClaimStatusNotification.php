@@ -48,7 +48,7 @@ class ClaimStatusNotification extends Notification
      */
     public function toMail(User $notifiable)
     {
-        return (new Mailable($this->claim))->to($notifiable->email);
+        return (new Mailable($notifiable, $this->claim))->to($notifiable->email);
         // ->line('The introduction to the notification.')
         // ->action('Notification Action', url('/'))
         // ->line('Thank you for using our application!');

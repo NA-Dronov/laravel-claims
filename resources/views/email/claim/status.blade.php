@@ -6,13 +6,13 @@
 @if ($claim->status == \App\Models\ClaimStatus::OPEN)
 {{$claim->body}}
 @elseif ($claim->status == \App\Models\ClaimStatus::PROCESSED)
-Заявка была принята на обработку менеджером {{$manager}}
+Заявка была принята на обработку менеджером {{$manager->name}}
 @else
 Заявка была закрыта
 @endif
 
-@component('mail::button', ['url' => ''])
-Button Text
+@component('mail::button', ['url' => $link])
+Перейти к заявке
 @endcomponent
 
 <br>

@@ -20,6 +20,11 @@ class Response extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function claim()
+    {
+        return $this->belongsTo(Claim::class, 'claim_id');
+    }
+
     /**
      * Get all of the response's files.
      */

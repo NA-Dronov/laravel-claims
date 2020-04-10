@@ -4,8 +4,8 @@
 
 {{$response->body}}
 
-@component('mail::button', ['url' => ''])
-Button Text
+@component('mail::button', ['url' => $link])
+Перейти к заявке
 @endcomponent
 <br>
 {{ config('app.name') }}
