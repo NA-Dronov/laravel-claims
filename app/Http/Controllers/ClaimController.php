@@ -146,6 +146,11 @@ class ClaimController extends Controller
 
             $recipient = null;
 
+            // Mark Claim as responded
+            if ($respondent->hasRole('manager')) {
+                $claim->markAsResponsed($respondent);
+            }
+
             // If respondent is assigned manager then send to claim owner
             if ($respondent->user_id == $claim->manager_id) {
                 $recipient = $claim->user;
@@ -175,6 +180,11 @@ class ClaimController extends Controller
     public function show(Claim $claim)
     {
         $item = $claim;
+
+        // Mark Claim as viewed
+        if (($user = auth()->user())->hasRole('manager')) {
+            $claim->markAsViewed($user);
+        }
 
         $new_reponse = Response::make();
         return view('claims.show', compact('item', 'new_reponse'));

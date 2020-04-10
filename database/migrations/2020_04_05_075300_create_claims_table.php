@@ -40,8 +40,8 @@ class CreateClaimsTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('claim_id');
             $table->char('relation_type', 1)->default('V');
-            $table->foreign('user_id')->references('user_id')->on('users');
-            $table->foreign('claim_id')->references('claim_id')->on('claims');
+            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->foreign('claim_id')->references('claim_id')->on('claims')->onDelete('cascade');
         });
     }
 

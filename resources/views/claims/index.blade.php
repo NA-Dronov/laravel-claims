@@ -21,6 +21,9 @@
     <div class="row">
         @if ($paginator->isNotEmpty())
         <div class="col-md-10 index-block">
+            Найдено: {{$paginator->total()}} заявлений
+        </div>
+        <div class="col-md-10 index-block">
             <table class="table table-hover">
                 <thead>
                     <tr>
@@ -56,51 +59,6 @@
                 <tfoot></tfoot>
             </table>
         </div>
-        <div class="col-md-2 search-block">
-        <form action="{{route('claims.index')}}" method="get">
-            @if (isset($sorting['sort_by']) && isset($sorting['sort_order']))
-            <input type="hidden" name="sort_by" value="{{$sorting['sort_by']}}">
-            <input type="hidden" name="sort_order" value="{{$sorting['sort_order']}}">
-            @endif
-            <div class="form-group">
-                <label for="status">Статус</label>
-                <select name="status" 
-                    id="status"
-                    class="form-control"
-                >
-                <option value="">----</option>
-                @foreach ($claimsStatuses as $statusKey => $statusDesc)
-                    <option value="{{ $statusKey }}" @if (isset($search['status']) && $search['status'] == $statusKey) selected @endif>
-                        {{ $statusDesc }}
-                    </option>
-                @endforeach
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="viewed">Просмторенные</label>
-                <select name="viewed" 
-                    id="viewed"
-                    class="form-control"
-                >
-                <option value="">----</option>
-                <option value="1" @if (isset($search['viewed']) && $search['viewed'] == 1) selected @endif>Да</option>
-                <option value="0" @if (isset($search['viewed']) && $search['viewed'] == 0) selected @endif>Нет</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="has_answer">Есть ответ</label>
-                <select name="has_answer" 
-                    id="has_answer"
-                    class="form-control"
-                >
-                <option value="">----</option>
-                <option value="1" @if (isset($search['has_answer']) && $search['has_answer'] == 1) selected @endif>Да</option>
-                <option value="0" @if (isset($search['has_answer']) && $search['has_answer'] == 0) selected @endif>Нет</option>
-                </select>
-            </div>
-            <button class="btn btn-primary btn-block" type="submit">Поиск</button>
-        </form>
-        </div>
         @else
         <div class="card col-md-10 text-center">
             <div class="card-body">
@@ -108,6 +66,51 @@
             </div>
         </div>
         @endif
+        <div class="col-md-2 search-block">
+            <form action="{{route('claims.index')}}" method="get">
+                @if (isset($sorting['sort_by']) && isset($sorting['sort_order']))
+                <input type="hidden" name="sort_by" value="{{$sorting['sort_by']}}">
+                <input type="hidden" name="sort_order" value="{{$sorting['sort_order']}}">
+                @endif
+                <div class="form-group">
+                    <label for="status">Статус</label>
+                    <select name="status" 
+                        id="status"
+                        class="form-control"
+                    >
+                    <option value="">----</option>
+                    @foreach ($claimsStatuses as $statusKey => $statusDesc)
+                        <option value="{{ $statusKey }}" @if (isset($search['status']) && $search['status'] == $statusKey) selected @endif>
+                            {{ $statusDesc }}
+                        </option>
+                    @endforeach
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="viewed">Просмторенные</label>
+                    <select name="viewed" 
+                        id="viewed"
+                        class="form-control"
+                    >
+                    <option value="">----</option>
+                    <option value="1" @if (isset($search['viewed']) && $search['viewed'] == 1) selected @endif>Да</option>
+                    <option value="0" @if (isset($search['viewed']) && $search['viewed'] == 0) selected @endif>Нет</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="has_answer">Есть ответ</label>
+                    <select name="has_answer" 
+                        id="has_answer"
+                        class="form-control"
+                    >
+                    <option value="">----</option>
+                    <option value="1" @if (isset($search['has_answer']) && $search['has_answer'] == 1) selected @endif>Да</option>
+                    <option value="0" @if (isset($search['has_answer']) && $search['has_answer'] == 0) selected @endif>Нет</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary btn-block" type="submit">Поиск</button>
+            </form>
+            </div>
     </div>
 </div>
 @endsection

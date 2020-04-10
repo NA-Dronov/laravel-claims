@@ -6,6 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class ClaimUserRelation extends Model
 {
+    const VIEWED = 'V';
+    const HAS_RESPONSE = 'R';
+
+    public $timestamps = false;
+
+    protected $guarded = [];
+
     protected $primaryKey = 'relation_id';
 
     public function claim()

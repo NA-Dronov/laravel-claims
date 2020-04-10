@@ -128,4 +128,22 @@ class Claim extends Model
 
         return $sorting;
     }
+
+    public function markAsViewed(User $user)
+    {
+        return ClaimUserRelation::firstOrCreate([
+            'user_id' => $user->user_id,
+            'claim_id' => $this->claim_id,
+            'relation_type' => ClaimUserRelation::VIEWED,
+        ]);
+    }
+
+    public function markAsResponsed(User $user)
+    {
+        return ClaimUserRelation::firstOrCreate([
+            'user_id' => $user->user_id,
+            'claim_id' => $this->claim_id,
+            'relation_type' => ClaimUserRelation::HAS_RESPONSE,
+        ]);
+    }
 }

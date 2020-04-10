@@ -66,31 +66,13 @@ class ClaimRepository extends CoreRepository
             'claims.status',
             'claims.created_at',
             'm.name as manager_name',
-            'COUNT(was_viewed_relations.claim_id) AS was_viewed',
-            'COUNT(has_new_responses_relations.claim_id) AS has_new_responses',
         ];
 
-        /**
-         * TODO:
-         * was_viewed_relations join must be included only for managers
-         * all joins must have user condition
-         * query must have user_id condition
-         * add filters
-         */
         $builder = $this
             ->startCondition()
             ->leftjoin('users as m', function ($join) {
                 $join->on('claims.manager_id', '=', 'm.user_id');
-            })
-            ->leftjoin('claim_user_relations as was_viewed_relations', function ($join) {
-                $join->on('claims.claim_id', '=', 'was_viewed_relations.claim_id')
-                    ->where('was_viewed_relations.relation_type', '=', 'V');
-            })
-            ->leftjoin('claim_user_relations as has_new_responses_relations', function ($join) {
-                $join->on('claims.claim_id', '=', 'has_new_responses_relations.claim_id')
-                    ->where('was_viewed_relations.relation_type', '=', 'R');
             });
-
         /**
          * @var \App\Models\User $user
          */
@@ -105,9 +87,40 @@ class ClaimRepository extends CoreRepository
             $builder->where('claims.status', '=', $search['status']);
         }
 
-        if (isset($search['viewed'])) {
-            $wasViewedCondition = 'COUNT(was_viewed_relations.claim_id) ' . ($search['viewed'] == true ? '>' : '=') . '0';
-            $builder->havingRaw($wasViewedCondition);
+        if ($user->hasRole('manager')) {
+            if (isset($search['viewed'])) {
+
+                if ($search['viewed']) {
+                    $builder->join('claim_user_relations as was_viewed_relations', function ($join) {
+                        $join->on('claims.claim_id', '=', 'was_viewed_relations.claim_id')
+                            ->where('was_viewed_relations.relation_type', '=', 'V');
+                    });
+                } else {
+                    $builder->leftjoin('claim_user_relations as was_viewed_relations', function ($join) {
+                        $join->on('claims.claim_id', '=', 'was_viewed_relations.claim_id')
+                            ->where('was_viewed_relations.relation_type', '=', 'V');
+                    });
+
+                    $builder->whereNull('was_viewed_relations.relation_type');
+                }
+            }
+
+            if (isset($search['has_answer'])) {
+
+                if ($search['has_answer']) {
+                    $builder->join('claim_user_relations as has_new_responses_relations', function ($join) {
+                        $join->on('claims.claim_id', '=', 'has_new_responses_relations.claim_id')
+                            ->where('has_new_responses_relations.relation_type', '=', 'R');
+                    });
+                } else {
+                    $builder->leftjoin('claim_user_relations as has_new_responses_relations', function ($join) {
+                        $join->on('claims.claim_id', '=', 'has_new_responses_relations.claim_id')
+                            ->where('has_new_responses_relations.relation_type', '=', 'R');
+                    });
+
+                    $builder->whereNull('has_new_responses_relations.relation_type');
+                }
+            }
         }
         #endregion
 
