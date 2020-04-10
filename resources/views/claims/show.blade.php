@@ -61,14 +61,6 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
-                    @can('assign_claim')
-                    @if (Auth::user()->user_id != $item->manager_id)
-                    <form action="{{route('claims.assign', [$item->claim_id, Auth::user()->user_id])}}" method="post" class="form-group row">
-                        @csrf
-                        <button class="btn btn-primary btn-block" type="submit">Назначить мне</button>
-                    </form>
-                    @endif
-                    @endcan
                     <div class="form-group row">
                         <label for="manager" class="col-sm-5 col-form-label">Ответственный:</label>
                         <div class="col-sm-7">
@@ -87,6 +79,14 @@
                           <input type="text" readonly class="form-control-plaintext" id="user" value="{{ $item->user->name }}">
                         </div>
                     </div>
+                    @can('assign_claim')
+                    @if (Auth::user()->user_id != $item->manager_id && $item->status != \App\Models\ClaimStatus::CLOSED)
+                    <form action="{{route('claims.assign', [$item->claim_id, Auth::user()->user_id])}}" method="post" class="form-group row">
+                        @csrf
+                        <button class="btn btn-primary btn-block" type="submit">Назначить мне</button>
+                    </form>
+                    @endif
+                    @endcan
                     @if ($item->status != \App\Models\ClaimStatus::CLOSED)
                     <form action="{{route('claims.close', [$item->claim_id])}}" method="post" class="form-group row">
                       @csrf

@@ -2,6 +2,9 @@
     display: inline-block;
     max-width: 200px;
     min-width: 22px;
+
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .search-block {
