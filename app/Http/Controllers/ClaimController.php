@@ -31,7 +31,7 @@ class ClaimController extends Controller
 
     public function __construct(ClaimRepository $claimRepository, FileBroker $fileBroker)
     {
-        $this->middleware(['can:create_claim', 'claim.time'])->only(['create', 'store']);
+        $this->middleware(['can:create_claim', /*'claim.time'*/])->only(['create', 'store']);
         $this->middleware('can:assign_claim')->only(['assign']);
         $this->middleware('claim.check_permission')->only(['response', 'show', 'close']);
         $this->middleware('claim.check_status')->only(['response', 'assign']);
@@ -95,8 +95,9 @@ class ClaimController extends Controller
 
             $managers = Role::whereName('super')->first()->users;
 
+            $notification_sent = true;
             if ($managers->isNotEmpty()) {
-                Notification::send($managers, new ClaimStatusNotification($item));
+                $notification_sent = $this->trySendNotification($managers, new ClaimStatusNotification($item));
             }
 
             $files = $request->allFiles();
@@ -105,8 +106,14 @@ class ClaimController extends Controller
                 $this->fileBroker->store($files['attachments'], $item->claim_id, File::CLAIM);
             }
 
-            return redirect()->route('claims.show', [$item->claim_id])
+            $result = redirect()->route('claims.show', [$item->claim_id])
                 ->with(['success']);
+
+            if ($notification_sent !== true) {
+                $result->withErrors(['msg' => $notification_sent]);
+            }
+
+            return $result;
         } else {
             return back()->withErrors(['msg' => 'Ошибка сохранения'])
                 ->withInput();
@@ -159,12 +166,19 @@ class ClaimController extends Controller
                 $recipient = $manager;
             }
 
+            $notification_sent = true;
             if (isset($recipient)) {
-                Notification::send($recipient, new ClaimResponseNotification($item));
+                $notification_sent = $this->trySendNotification($recipient, new ClaimResponseNotification($item));
             }
 
-            return redirect()->route('claims.show', [$item->claim_id])
+            $result = redirect()->route('claims.show', [$item->claim_id])
                 ->with(['success' => 'Успех', 'active' => 'responses']);
+
+            if ($notification_sent !== true) {
+                $result->withErrors(['msg' => $notification_sent]);
+            }
+
+            return $result;
         } else {
             return back()->withErrors(['msg' => 'Ошибка сохранения'])
                 ->withInput();
@@ -194,21 +208,45 @@ class ClaimController extends Controller
     {
         $claim->update(['manager_id' => $user->user_id, 'status' => ClaimStatus::PROCESSED]);
 
-        Notification::send($claim->user, new ClaimStatusNotification($claim));
+        $notification_sent = $this->trySendNotification($claim->user, new ClaimStatusNotification($claim));
 
-        return redirect()->route('claims.show', [$claim->claim_id])
+        $result = redirect()->route('claims.show', [$claim->claim_id])
             ->with(['success']);
+
+        if ($notification_sent !== true) {
+            $result->withErrors(['msg' => $notification_sent]);
+        }
+
+        return $result;
     }
 
     public function close(Claim $claim)
     {
         $claim->update(['status' => ClaimStatus::CLOSED]);
 
+        $notification_sent = true;
         if (null !== ($recipient = $claim->manager)) {
-            Notification::send($recipient, new ClaimStatusNotification($claim));
+            $notification_sent = $this->trySendNotification($recipient, new ClaimStatusNotification($claim));
         }
 
-        return redirect()->route('claims.show', [$claim->claim_id])
+        $result = redirect()->route('claims.show', [$claim->claim_id])
             ->with(['success']);
+
+        if ($notification_sent !== true) {
+            $result->withErrors(['msg' => $notification_sent]);
+        }
+
+        return $result;
+    }
+
+    private function trySendNotification($notifiables, $notification)
+    {
+        try {
+            Notification::send($notifiables, $notification);
+        } catch (\Throwable $th) {
+            return "Произошла ошибка при отпраки уведомления";
+        }
+
+        return true;
     }
 }
