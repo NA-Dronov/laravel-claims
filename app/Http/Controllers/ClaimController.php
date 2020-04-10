@@ -244,7 +244,7 @@ class ClaimController extends Controller
         try {
             Notification::send($notifiables, $notification);
         } catch (\Throwable $th) {
-            return "Произошла ошибка при отпраки уведомления";
+            return config('app.debug') == false ? "Произошла ошибка при отпраки уведомления" : $th->getMessage();
         }
 
         return true;
