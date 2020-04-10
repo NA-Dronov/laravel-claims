@@ -8,11 +8,15 @@ use App\Models\Claim;
 use App\Models\ClaimStatus;
 use App\Models\File;
 use App\Models\Response;
+use App\Models\Role;
 use App\Models\User;
+use App\Notifications\ClaimResponseNotification;
+use App\Notifications\ClaimStatusNotification;
 use App\Repositories\ClaimRepository;
 use App\Repositories\FileBroker;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class ClaimController extends Controller
 {
@@ -84,6 +88,12 @@ class ClaimController extends Controller
 
         if ($item) {
 
+            $managers = Role::whereName('super')->first()->users;
+
+            if ($managers->isNotEmpty()) {
+                Notification::send($managers, new ClaimStatusNotification($item));
+            }
+
             $files = $request->allFiles();
 
             if (!empty($files['attachments'])) {
@@ -115,10 +125,13 @@ class ClaimController extends Controller
 
         $data = $request->input();
 
-        $data['user_id'] = auth()->user()->user_id;
+        $data['user_id'] = $respondent->user_id;
         $data['claim_id'] = $claim->claim_id;
 
         // Create object and add to database
+        /**
+         * @var \App\Models\Response $item
+         */
         $item = Response::create($data);
 
         if ($item) {
@@ -127,6 +140,20 @@ class ClaimController extends Controller
 
             if (!empty($files['attachments'])) {
                 $this->fileBroker->store($files['attachments'], $item->response_id, File::RESPONSE);
+            }
+
+            $recipient = null;
+
+            // If respondent is assigned manager then send to claim owner
+            if ($respondent->user_id == $claim->manager_id) {
+                $recipient = $claim->user;
+                // Otherwise send to assigned manager if claim has one
+            } elseif (null !== ($manager = $claim->manager)) {
+                $recipient = $manager;
+            }
+
+            if (isset($recipient)) {
+                Notification::send($recipient, new ClaimResponseNotification($item));
             }
 
             return redirect()->route('claims.show', [$item->claim_id])
@@ -148,13 +175,14 @@ class ClaimController extends Controller
         $item = $claim;
 
         $new_reponse = Response::make();
-        //$item_files = $this->fileBroker->getAll($item->claim_id, File::CLAIM)->toArray();
         return view('claims.show', compact('item', 'new_reponse'));
     }
 
     public function assign(Claim $claim, User $user)
     {
-        $claim->update(['manager_id' => $user->user_id]);
+        $claim->update(['manager_id' => $user->user_id, 'status' => ClaimStatus::PROCESSED]);
+
+        Notification::send($claim->user, new ClaimStatusNotification($claim));
 
         return redirect()->route('claims.show', [$claim->claim_id])
             ->with(['success']);
@@ -163,6 +191,10 @@ class ClaimController extends Controller
     public function close(Claim $claim)
     {
         $claim->update(['status' => ClaimStatus::CLOSED]);
+
+        if (null !== ($recipient = $claim->manager)) {
+            Notification::send($recipient, new ClaimStatusNotification($claim));
+        }
 
         return redirect()->route('claims.show', [$claim->claim_id])
             ->with(['success']);
