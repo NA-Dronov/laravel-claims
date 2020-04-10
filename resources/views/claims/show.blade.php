@@ -34,7 +34,7 @@
                         @if ($item->responses->isNotEmpty())
                         @foreach ($item->responses as $response)                          
                           <div class="col-md-8 card my-1 @if($response->author->roles->contains('name', 'manager')) response-manager ml-auto @else response-owner mr-auto @endif text-white">
-                            <h5 class="card-title clearfix py-1 px-0 m-0"><span class="float-left">{{$response->subject}}</span><span class="float-right">{{$response->author->name}} {{\Carbon\Carbon::parse($response->created_at)->format('d-m-Y H:i')}}</span></h5>
+                            <h5 class="card-title clearfix py-1 px-0 m-0"><span class="float-left">{{$response->subject}}</span><span class="float-right">{{$response->author->name}} {{\Carbon\Carbon::parse($response->created_at)->format(config('app.datetimeformat'))}}</span></h5>
                             <div class="card-body py-1 px-0">
                               <p class="card-text">{{$response->body}}</p>
                               @if ($response->files->isNotEmpty())
@@ -78,7 +78,7 @@
                     <div class="form-group row">
                         <label for="created_at" class="col-sm-5 col-form-label">Дата создания:</label>
                         <div class="col-sm-7">
-                          <input type="text" readonly class="form-control-plaintext" id="created_at" value="{{ $item->created_at }}">
+                          <input type="text" readonly class="form-control-plaintext" id="created_at" value="{{ \Carbon\Carbon::parse($item->created_at)->format(config('app.datetimeformat')) }}">
                         </div>
                     </div>
                     <div class="form-group row">
