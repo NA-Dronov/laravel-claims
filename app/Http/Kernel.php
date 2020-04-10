@@ -64,5 +64,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'claim.time' => \App\Http\Middleware\CheckTime::class,
         'claim.check_permission' => \App\Http\Middleware\CheckClaimUserPermission::class,
+        'claim.check_status' => \App\Http\Middleware\CheckClaimStatus::class,
     ];
 }

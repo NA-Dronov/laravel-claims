@@ -14,7 +14,6 @@ use App\Notifications\ClaimResponseNotification;
 use App\Notifications\ClaimStatusNotification;
 use App\Repositories\ClaimRepository;
 use App\Repositories\FileBroker;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 
@@ -35,6 +34,7 @@ class ClaimController extends Controller
         $this->middleware(['can:create_claim', 'claim.time'])->only(['create', 'store']);
         $this->middleware('can:assign_claim')->only(['assign']);
         $this->middleware('claim.check_permission')->only(['response', 'show', 'close']);
+        $this->middleware('claim.check_status')->only(['response', 'assign']);
 
         $this->claimRepository = $claimRepository;
         $this->fileBroker = $fileBroker;
@@ -53,7 +53,12 @@ class ClaimController extends Controller
 
         $claimsStatuses = $this->claimRepository->getStatusesForCombobox();
 
-        $managerMode = auth()->user()->hasRole('manager');
+        /**
+         * @var \App\Models\User $manager
+         */
+        $manager = auth()->user();
+
+        $managerMode = $manager->hasRole('manager');
 
         return view('claims.index', compact('paginator', 'claimsStatuses', 'search', 'sorting', 'managerMode'));
     }
@@ -118,12 +123,9 @@ class ClaimController extends Controller
      */
     public function response(Claim $claim, ResponseCreateRequest $request)
     {
-        if ($claim->claim_status->code == ClaimStatus::CLOSED) {
-            return redirect()->route('claims.show', [$claim->claim_id])
-                ->withErrors(['msg' => 'Заявка закрыта']);
-        }
-
         $data = $request->input();
+
+        $respondent = auth()->user();
 
         $data['user_id'] = $respondent->user_id;
         $data['claim_id'] = $claim->claim_id;
