@@ -18,6 +18,11 @@ class RolesAndAbiltiesSeeder extends Seeder
             'description' => 'Менеджер'
         ]);
 
+        $su = Role::create([
+            'name' => 'super',
+            'description' => 'Администратор'
+        ]);
+
         $user = Role::create([
             'name' => 'client',
             'description' => 'Клиент'
@@ -34,6 +39,7 @@ class RolesAndAbiltiesSeeder extends Seeder
         ]);
 
         $manager->allowTo($assignClaim);
+        $su->allowTo($assignClaim);
         $user->allowTo($createClaim);
     }
 }

@@ -14,6 +14,12 @@ class Role extends Model
         return $this->belongsToMany(Ability::class, null, 'role_id', 'ability_id');
     }
 
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, null, 'role_id', 'user_id');
+    }
+
     public function allowTo($ability)
     {
         $this->abilities()->syncWithoutDetaching($ability);

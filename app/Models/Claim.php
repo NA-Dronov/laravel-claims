@@ -65,7 +65,7 @@ class Claim extends Model
      */
     public function manager()
     {
-        return $this->belongsTo(User::class, 'manager_id', 'user_id');
+        return $this->hasOne(User::class, 'user_id', 'manager_id');
     }
 
     /**

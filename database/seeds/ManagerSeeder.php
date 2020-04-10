@@ -23,7 +23,9 @@ class ManagerSeeder extends Seeder
         ]);
 
         $manager_role = Role::where('name', 'manager')->first();
+        $su_role = Role::where('name', 'super')->first();
 
         $manager->assignRole($manager_role);
+        $manager->assignRole($su_role);
     }
 }
