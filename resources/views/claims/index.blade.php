@@ -3,11 +3,13 @@
 @push('styles')
 <link href="{{ asset('css/claims.index.css') }}" rel="stylesheet">
 @endpush
-
+@php
+    $table_col = $managerMode ? 'col-md-10' : 'col-md-12'
+@endphp
 @section('content')
 <div class="container">
     <div class="row">
-        <div class="col-md-10 mb-2">
+        <div class="{{$table_col}} mb-2">
             @if($paginator->total() > $paginator->count())
             <div class="float-left">
                 {{ $paginator->links() }}
@@ -20,10 +22,12 @@
     </div>
     <div class="row">
         @if ($paginator->isNotEmpty())
+        @if ($managerMode)
         <div class="col-md-10 index-block">
             Найдено: {{$paginator->total()}} заявлений
         </div>
-        <div class="col-md-10 index-block">
+        @endif
+        <div class="{{$table_col}} index-block">
             <table class="table table-hover">
                 <thead>
                     <tr>
@@ -66,6 +70,7 @@
             </div>
         </div>
         @endif
+        @if ($managerMode)
         <div class="col-md-2 search-block">
             <form action="{{route('claims.index')}}" method="get">
                 @if (isset($sorting['sort_by']) && isset($sorting['sort_order']))
@@ -110,7 +115,8 @@
                 </div>
                 <button class="btn btn-primary btn-block" type="submit">Поиск</button>
             </form>
-            </div>
+        </div>
+        @endif
     </div>
 </div>
 @endsection
